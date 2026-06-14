@@ -1,0 +1,195 @@
+---
+title: "`r params$study` FASTA report"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 2
+    number_sections: false
+params:
+  study: "LYL273"
+  version: !r '{ f <- list.files(pattern="^FASTA*\\.R$")[1]; iso <- gsub("[._]","",f); regmatches(iso, regexpr("\\d+", iso)) }'
+  fcs_dir: "."           # root to scan for input FCS files
+header-includes:
+  - \usepackage{array}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{colortbl}
+  - \usepackage{float}
+  - \usepackage{placeins}
+  - \usepackage{titlesec}
+  - \titlespacing*{\subsection}{0pt}{0pt}{4pt}
+  - \AtBeginDocument{\hypersetup{bookmarksopen=true,bookmarksopenlevel=1}}
+  - \usepackage{fancyhdr}
+  - \usepackage{lastpage}
+  - \setlength{\headheight}{14pt}
+  - \pagestyle{fancy}
+  - \fancyhf{}
+  - \fancyhead[L]{\small `r params$study` FASTA Report}
+  - \fancyhead[R]{\small\itshape Developed by Lyell-SSF-Flowcore}
+  - \fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}
+  - \renewcommand{\headrulewidth}{0.4pt}
+  - \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}\renewcommand{\headrulewidth}{0pt}}
+classoption: landscape
+date: "`r Sys.Date()`"
+colorlinks: true
+
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+  f<- list.files(pattern = "^FASTA*\\.R$")[1]
+  iso<- gsub("[._]", "", f)                       
+  scriptName<- regmatches(iso, regexpr("^\\D+", iso))
+  scriptVer<- regmatches(iso, regexpr("\\d+",  iso)) 
+  options(knitr.table.format = "latex")
+  knitr::opts_chunk$set(dev = "ragg_png", dpi = 300)
+  if (!requireNamespace("purrr", quietly = TRUE)) install.packages("purrr")
+  library(purrr)
+  knitr::opts_knit$set(root.dir = normalizePath("."))
+  ScriptFile   <- grep("ExtFunctions",
+                         grep("FASTA", list.files(pattern=".*\\.R$"), value=TRUE),
+                         value=TRUE, invert=TRUE)
+  listOfFunctions<-c(ScriptFile)
+  knitr::opts_knit$set(root.dir = normalizePath("."))
+  walk(listOfFunctions, source, local = knitr::knit_global())
+```
+
+```{=tex}
+\FloatBarrier
+\newpage
+```
+
+# Gating Scheme
+
+```{r GatingPlot, fig.width=12, fig.height=8, echo=FALSE, warning=FALSE, message=FALSE}
+    plot(gs,boolean=TRUE)
+```
+
+```{=tex}
+\FloatBarrier
+\newpage
+```
+
+# Data Summary
+
+```{r summaryPlot1, fig.width=15, fig.height=11, echo=FALSE, warning=FALSE, message=FALSE}
+##  plot(SummaryPlot1)
+```
+
+```{r summaryPlot2, fig.width=15, fig.height=11, echo=FALSE, warning=FALSE, message=FALSE}
+ ## plot(SummaryPlot2)
+```
+
+```{r summaryPlot3, fig.width=15, fig.height=11, echo=FALSE, warning=FALSE, message=FALSE}
+##plot(SummaryPlot3)
+```
+
+```{=tex}
+\FloatBarrier
+\newpage
+```
+
+# Panel QC
+
+```{r Panel QC, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+  cat("**Panel Inventory:**", PanelMasterInventoryLocation, "\n\n")
+  cat("**Panel Iteration:**", PanelIteration, "\n\n")
+  
+  pqc <- panel_QC(gs, PanelMasterInventoryLocation, PanelIteration)
+  if (nrow(pqc) == 0) {
+    cat("**Panel as expected** — all markers verified.\n")
+  } else {
+    print(knitr::kable(pqc, format="latex", booktabs=TRUE,
+                       caption=paste("Panel QC:", knitr:::escape_latex(PanelIteration))) |>
+      kableExtra::kable_styling(font_size=8,
+                                 latex_options=c("hold_position","scale_down")))
+  }
+```
+
+```{=tex}
+\FloatBarrier
+\newpage
+```
+
+# Gating QC
+
+```{r Gating QC, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+  check_labels <- c(
+    population_missing                = "Missing Populations",
+    active_gate_false_present         = "Disabled Gates Still Present",
+    parent_path_mismatch              = "Parent Path Mismatch",
+    gate_logic_component_missing      = "gate_logic: Missing Components",
+    identical_threshold_all_samples   = "Identical Threshold (All Samples)",
+    identical_threshold_across_groups = "Identical Threshold Across Groups",
+    within_group_threshold_variation  = "Within-Group Threshold Variation",
+    threshold_outside_data_range      = "Threshold Outside Data Range",
+    quadrant_children_sum_mismatch    = "Quadrant Children Sum Mismatch",
+    gate_logic_count_mismatch         = "gate_logic Count Mismatch",
+    empty_population                  = "Empty Populations",
+    low_parent_events                 = "Low Parent Event Count"
+  )
+  
+  for (nm in names(tbls)[names(tbls) %in% names(check_labels)]) {
+    cat("\n\n###", check_labels[nm], "\n\n")
+    df <- tbls[[nm]]
+    df$check <- NULL
+    print(
+      knitr::kable(df, format="latex", booktabs=TRUE, longtable=TRUE) |>
+      kable_styling(latex_options=c("hold_position","repeat_header"), font_size=8,
+                    repeat_header_continued=TRUE) |>
+      column_spec(2, width="6cm")
+    )
+    cat("\n\n\\FloatBarrier\n\n")  # ← flush floats before next header
+  }
+```
+
+```{=tex}
+\FloatBarrier
+\newpage
+```
+
+# Layouts
+
+```{r layoutPlots, fig.width=12, fig.height=8, fig.pos="H", echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+stopifnot("label" %in% colnames(pData(gs)))
+for (i in seq_along(gs)) {
+  lbl <- pData(gs)$label[i]
+  cat("\n\\clearpage\n\\subsection{\\small", knitr:::escape_latex(lbl), "}\n\n")
+  first <- TRUE
+  for (layout_nm in c("layout_1","layout_2","layout_3")) {
+    if (!is.null(plot_list[[i]][[layout_nm]])) {
+      if (!first) cat("\n\\newpage\n")
+      print(plot_list[[i]][[layout_nm]])
+      first <- FALSE
+    }
+  }
+}
+```
+
+```{=tex}
+\FloatBarrier
+\newpage
+```
+
+# Session Information
+
+```{r provenance, echo=FALSE, results='asis', warning=FALSE, message=FALSE}
+cat("**Script version:** ", scriptName, " v", scriptVer, "\n\n", sep="")
+fcs <- list.files(path = params$fcs_dir, pattern = "\\.fcs$",
+                  recursive = TRUE, full.names = TRUE)
+
+cat("**Render timestamp:** ", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"), "\n\n", sep="")
+cat("**Rendered by:** ", Sys.info()[["user"]], " on ", Sys.info()[["nodename"]], "\n\n", sep="")
+cat("**Panel inventory:** ", PanelMasterInventoryLocation, " (", PanelIteration, ")\n\n", sep="")
+if (length(fcs)) {
+  md5 <- tools::md5sum(fcs)
+  print(knitr::kable(data.frame(File=basename(names(md5)), MD5=unname(md5)),
+                     format="latex", booktabs=TRUE,
+                     caption="Input file checksums") |>
+        kableExtra::kable_styling(font_size=7, latex_options=c("hold_position","scale_down")))
+}
+```
+
+```{r sessionInfo, echo=FALSE}
+sessioninfo::session_info()
+```
