@@ -130,7 +130,7 @@ plot_list[[7]][["layout_1"]]
 
 # Panel QC [Inactivated for Github]
 ##PanelMasterInventoryLocation<-"/Users/jsharma@lyell.com/Library/CloudStorage/OneDrive-LyellImmunopharma/Research - Bioinformatics & Tumor-Tcell Profiling/Flow Cytometry/TIER 1/InventoryManagement/260519_Master_Panel_Inventory.xlsx"
-##PanelIteration<-"260527_LYL273_[JS]"
+PanelIteration<-"Placeholder"
 ##pqc <- panel_QC(gs, PanelMasterInventoryLocation, PanelIteration)
 
 # Gating QC

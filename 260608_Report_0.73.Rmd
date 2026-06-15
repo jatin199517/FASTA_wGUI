@@ -89,22 +89,6 @@ colorlinks: true
 \newpage
 ```
 
-# Panel QC
-
-```{r Panel QC, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
-  cat("**Panel Inventory:**", PanelMasterInventoryLocation, "\n\n")
-  cat("**Panel Iteration:**", PanelIteration, "\n\n")
-  
-  pqc <- panel_QC(gs, PanelMasterInventoryLocation, PanelIteration)
-  if (nrow(pqc) == 0) {
-    cat("**Panel as expected** — all markers verified.\n")
-  } else {
-    print(knitr::kable(pqc, format="latex", booktabs=TRUE,
-                       caption=paste("Panel QC:", knitr:::escape_latex(PanelIteration))) |>
-      kableExtra::kable_styling(font_size=8,
-                                 latex_options=c("hold_position","scale_down")))
-  }
-```
 
 ```{=tex}
 \FloatBarrier
@@ -180,7 +164,6 @@ fcs <- list.files(path = params$fcs_dir, pattern = "\\.fcs$",
 
 cat("**Render timestamp:** ", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"), "\n\n", sep="")
 cat("**Rendered by:** ", Sys.info()[["user"]], " on ", Sys.info()[["nodename"]], "\n\n", sep="")
-cat("**Panel inventory:** ", PanelMasterInventoryLocation, " (", PanelIteration, ")\n\n", sep="")
 if (length(fcs)) {
   md5 <- tools::md5sum(fcs)
   print(knitr::kable(data.frame(File=basename(names(md5)), MD5=unname(md5)),
