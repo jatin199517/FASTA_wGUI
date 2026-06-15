@@ -7,7 +7,7 @@ output:
     toc_depth: 2
     number_sections: false
 params:
-  study: "LYL273"
+  study: "StudyName"
   version: !r '{ f <- list.files(pattern="^FASTA*\\.R$")[1]; iso <- gsub("[._]","",f); regmatches(iso, regexpr("\\d+", iso)) }'
   fcs_dir: "."           # root to scan for input FCS files
 header-includes:
@@ -26,7 +26,7 @@ header-includes:
   - \pagestyle{fancy}
   - \fancyhf{}
   - \fancyhead[L]{\small `r params$study` FASTA Report}
-  - \fancyhead[R]{\small\itshape Developed by Lyell-SSF-Flowcore}
+  - \fancyhead[R]{\small\itshape Developed by Jatin}
   - \fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}
   - \renewcommand{\headrulewidth}{0.4pt}
   - \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}\renewcommand{\headrulewidth}{0pt}}
